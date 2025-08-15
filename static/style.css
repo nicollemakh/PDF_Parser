@@ -1,0 +1,122 @@
+body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    margin: 40px;
+    background: linear-gradient(to right, #e0f7fa, #f1f8e9);
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    color: #222;
+    font-size: 2.4em;
+    margin-bottom: 10px;
+}
+
+form, #controls {
+    margin-bottom: 25px;
+}
+
+button {
+    margin: 5px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    transition: all 0.3s ease;
+}
+button:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 123, 255, 0.3);
+}
+
+#results {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    font-family: 'Georgia', serif;
+    font-size: 18px;
+    line-height: 1.7;
+    color: #333;
+    max-width: 800px;
+    width: 100%;
+    margin-top: 20px;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+#results p {
+    margin-bottom: 1em;
+    padding-left: 10px;
+    border-left: 4px solid #007bff;
+    background: #f0f8ff;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+.loading-message {
+    font-size: 20px;
+    font-weight: bold;
+    color: #555;
+    text-align: center;
+    padding: 20px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+
+.quiz-question {
+    background: #fdfdfd;
+    border: 1px solid #ddd;
+    border-left: 5px solid #007bff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.quiz-question:hover {
+    background-color: #f1f8ff;
+}
+
+input[type="radio"] {
+    margin-right: 8px;
+}
+
+.quiz-option {
+    display: block;
+    margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+    body {
+        margin: 20px;
+    }
+
+    #results {
+        padding: 20px;
+        font-size: 16px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+}

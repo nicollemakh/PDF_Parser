@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Parser App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>PDF Parser App</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="pdf" accept=".pdf" required>
+        <button type="submit">Upload PDF</button>
+    </form>
+    <div id="controls" style="display:none;">
+        <input type="text" id="searchBox" placeholder="Search text...">
+        <button onclick="searchText()">Search</button>
+        <button onclick="summarize()">Summarize</button>
+        <button onclick="generateQuiz()">Generate Quiz</button>
+        <button onclick="audibleSummary()">Audible Summary</button>
+    </div>
+    <div id="results"></div>
+    <script>
+        let filename = "";
+        document.getElementById('uploadForm').onsubmit = async function(e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            let res = await fetch('/upload', {method:'POST', body:formData});
+            let data = await res.json();
+            if(data.success) {
+                filename = data.filename;
+                document.getElementById('controls').style.display = 'block';
+            }
+        };
+        async function searchText() {
+            let query = document.getElementById('searchBox').value;
+            const res = await fetch('/search', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ filename, query })
+            });
+
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = "highlighted_result.pdf";
+                link.textContent = "Download Highlighted PDF";
+                document.getElementById('results').innerHTML = "";
+                document.getElementById('results').appendChild(link);
+            } else {
+                document.getElementById('results').innerText = "Highlighting failed.";
+            }
+        }
+
+        async function summarize() {
+            // Show the loading message
+            document.getElementById('results').innerHTML = `
+                <div class="loading-message">Coming up with summary... ✨</div>
+            `;
+
+            try {
+                let res = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                });
+
+                let data = await res.json();
+                const paragraphs = data.summary.split('. ').map(s => s.trim()).filter(s => s.length > 0);
+                const formatted = paragraphs.map(p => `<p>${p}.</p>`).join('');
+                document.getElementById('results').innerHTML = formatted;
+
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p style="color:red;">Failed to summarize. Please try again.</p>`;
+                console.error(error);
+            }
+        }
+        async function generateQuiz() {
+            let res = await fetch('/quiz', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ filename })
+            });
+            let data = await res.json();
+
+            let html = "";
+            data.quiz.forEach((q, idx) => {
+                html += `<div class="quiz-question" data-answer="${q.answer}">`;
+                html += `<b>Q${idx+1}: ${q.question}</b><br>`;
+                q.options.forEach(opt => {
+                    html += `<label><input type="radio" name="q${idx}" value="${opt}"> ${opt}</label><br>`;
+                });
+                html += `</div><br>`;
+            });
+            html += `<button id="submitQuizBtn">Submit Quiz</button>`;
+            document.getElementById('results').innerHTML = html;
+
+            document.getElementById('submitQuizBtn').onclick = () => {
+                checkQuizAnswers();
+            };
+        }
+        function checkQuizAnswers() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correctCount = 0;
+
+            questions.forEach((qDiv, idx) => {
+                const correctAnswer = qDiv.getAttribute('data-answer');
+                const selected = qDiv.querySelector(`input[name="q${idx}"]:checked`);
+                if (selected && selected.value === correctAnswer) {
+                    correctCount++;
+                    qDiv.style.backgroundColor = '#d4edda';  // green for correct
+                } else {
+                    qDiv.style.backgroundColor = '#f8d7da';  // red for wrong or unanswered
+                }
+            });
+
+            const total = questions.length;
+            const resultDiv = document.createElement('div');
+            resultDiv.style.marginTop = '20px';
+            resultDiv.style.fontWeight = 'bold';
+            resultDiv.textContent = `You got ${correctCount} out of ${total} correct!`;
+            document.getElementById('results').appendChild(resultDiv);
+        }
+
+
+        async function audibleSummary() {
+            // Show the loading message
+            document.getElementById('results').innerHTML = `
+                <div class="loading-message">Loading audio summary... 🔊</div>
+            `;
+
+            try {
+                let res = await fetch('/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                });
+
+                let blob = await res.blob();
+                let url = URL.createObjectURL(blob);
+                let audio = document.createElement('audio');
+                audio.src = url;
+                audio.controls = true;
+
+                document.getElementById('results').innerHTML = "";
+                document.getElementById('results').appendChild(audio);
+
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p style="color:red;">Failed to load audio summary. Please try again.</p>`;
+                console.error(error);
+            }
+        }
+
+    </script>
+</body>
+</html>
